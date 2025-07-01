@@ -161,3 +161,38 @@ class AuthService:
 # Create service instance
 auth_service = AuthService()
 
+
+
+# Dependency to get current user
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db = Depends(get_db)
+):
+    """Get current authenticated user."""
+    try:
+        token = credentials.credentials
+        payload = verify_token(token)
+        email: str = payload.get("sub")
+        user_id: str = payload.get("user_id")
+        token_type: str = payload.get("type")
+        
+        if email is None or user_id is None or token_type != "access":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+    
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+    
+    return UserInDB(**user)
+

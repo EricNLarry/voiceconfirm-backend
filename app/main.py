@@ -81,6 +81,10 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(orders_router, prefix="/api/orders", tags=["Orders"])
 app.include_router(calls_router, prefix="/api/calls", tags=["Calls"])
 
+# Import and include integrations router
+from app.api.integrations.routes import router as integrations_router
+app.include_router(integrations_router, prefix="/api/integrations", tags=["Integrations"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
